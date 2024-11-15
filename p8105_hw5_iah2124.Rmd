@@ -35,7 +35,13 @@ sim_res =
   summarize(prob = mean(res))
 sim_res |> 
   ggplot(aes(x = n, y = prob )) + 
-  geom_line()
+  geom_line() + 
+  labs(
+    title = "Probability of Shared Birthday vs. Group Size",
+    x = "Group Size (n)",
+    y = "Probability of Shared Birthday"
+  ) +
+  theme_minimal()
 ```
 Turn this into a function
 ```{r}
@@ -65,11 +71,24 @@ sim_res =
 sim_res |> 
   mutate(sample_size = str_c("n = ", sample_size)) |> 
   ggplot(aes(x = sample_size, y = beta1_hat)) + 
-  geom_boxplot()
+  geom_boxplot() +
+    labs(
+    title = "Distribution of Beta1 Estimates for Different Sample Sizes",
+    x = "Sample Size",
+    y = "Beta1 Estimate"
+  ) +
+  theme_minimal()
+
 sim_res |> 
   filter(sample_size == 30) |> 
   ggplot(aes(x = beta0_hat, y = beta1_hat)) +
-  geom_point()
+  geom_point() + 
+  labs(
+    title = "Scatter Plot of Beta0 vs Beta1 Estimates for n = 30",
+    x = "Beta0 Estimate",
+    y = "Beta1 Estimate"
+  ) +
+  theme_minimal()
 ```
 
 ## Problem 2
@@ -151,6 +170,7 @@ ggplot(estimates_df, aes(x = mu)) +
 ```
 Is the sample average of 𝜇̂ across tests for which the null is rejected approximately equal to the true value of 𝜇? Why or why not?
 
+## Problem 3
 ```{r}
 homicide_df <- read_csv("homicide-data.csv") |>
     mutate(city_state = map2(city, state, ~ paste(.x, .y, sep = ","))) 
