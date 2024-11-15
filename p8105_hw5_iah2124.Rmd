@@ -149,8 +149,6 @@ ggplot(estimates_df, aes(x = mu)) +
   theme_minimal()
 
 ```
-
-
 Is the sample average of 𝜇̂ across tests for which the null is rejected approximately equal to the true value of 𝜇? Why or why not?
 
 ```{r}
