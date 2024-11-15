@@ -71,3 +71,22 @@ sim_res |>
   ggplot(aes(x = beta0_hat, y = beta1_hat)) +
   geom_point()
 ```
+
+## Problem 2
+
+Set parameters
+```{r}
+n <- 30    # Sample size
+sigma <- 5 # Standard deviation
+alpha <- 0.05  # Significance level
+n_sim <- 5000
+
+```
+
+
+
+
+```{r}
+homicide_df <- read_csv("homicide-data.csv") |>
+    mutate(city_state = map2(city, state, ~ paste(.x, .y, sep = ","))) 
+```
