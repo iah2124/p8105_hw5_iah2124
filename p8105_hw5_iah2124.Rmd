@@ -73,8 +73,7 @@ sim_res |>
 ```
 
 ## Problem 2
-
-Set parameters
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of 𝜇 on the x axis. 
 ```{r}
 n <- 30    
 sigma <- 5 
@@ -107,9 +106,33 @@ ggplot(power_df, aes(x = mu, y = power)) +
   ) +
   theme_minimal()
 ```
+Describe the association between effect size and power.
 
 
+Make a plot showing the average estimate of 𝜇̂ on the y axis and the true value of 𝜇 on the x axis. Make a second plot (or overlay on the first) the average estimate of 𝜇̂ only in samples for which the null was rejected on the y axis and the true value of 𝜇 on the x axis. 
+```{r}
+simulate_estimates <- function(mu) {
+  results <- replicate(n_sim, {
+    data <- rnorm(n, mean = mu, sd = sigma)
+    t_test <- t.test(data, mu = 0)
+    c(sample_mean = mean(data), p_value = t_test$p.value)
+  })
+ sample_means <- results[1, ]
+  p_values <- results[2, ]
+  
+  avg_sample_mean <- mean(sample_means)
 
+  avg_sample_mean_rejected <- mean(sample_means[p_values < alpha])
+  
+  c(avg_sample_mean = avg_sample_mean, avg_sample_mean_rejected = avg_sample_mean_rejected)
+}
+
+estimates <- sapply(mu_values, simulate_estimates)
+
+```
+
+
+Is the sample average of 𝜇̂ across tests for which the null is rejected approximately equal to the true value of 𝜇? Why or why not?
 
 ```{r}
 homicide_df <- read_csv("homicide-data.csv") |>
