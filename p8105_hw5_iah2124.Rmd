@@ -129,6 +129,25 @@ simulate_estimates <- function(mu) {
 
 estimates <- sapply(mu_values, simulate_estimates)
 
+estimates_df <- tibble(
+  mu = mu_values,
+  avg_sample_mean = estimates[1, ],
+  avg_sample_mean_rejected = estimates[2, ]
+)
+
+ggplot(estimates_df, aes(x = mu)) +
+  geom_point(aes(y = avg_sample_mean), color = "coral", size = 3) +
+  geom_line(aes(y = avg_sample_mean), color = "coral") +
+  geom_point(aes(y = avg_sample_mean_rejected), color = "lightblue", size = 3) +
+  geom_line(aes(y = avg_sample_mean_rejected), color = "lightblue") +
+  labs(
+    title = "Average Estimate of 𝜇̂ vs. True 𝜇",
+    x = "True Mean (𝜇)",
+    y = "Average Estimate of 𝜇̂",
+    caption = "Blue: Average 𝜇̂ across all tests; Red: Average 𝜇̂ for tests where null was rejected"
+  ) +
+  theme_minimal()
+
 ```
 
 
