@@ -8,6 +8,8 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(broom)
+library(purrr)
 set.seed(1)
 ```
 
@@ -43,7 +45,9 @@ sim_res |>
   ) +
   theme_minimal()
 ```
-Turn this into a function
+With increases group size, the likelihood that at least two people in a group share the same birthday increases. By the time the group size reaches n = 50, there is almost a 100% chance that at least two people have the same birthday. 
+
+Turn this into a function (extra)
 ```{r}
 sim_regression = function(n) {
   
@@ -126,6 +130,7 @@ ggplot(power_df, aes(x = mu, y = power)) +
   theme_minimal()
 ```
 Describe the association between effect size and power.
+As the true mean value increases, the power begisn to increase drastically. By the time the true mean reaches 4, the power levels out to be 1.00, flattening the steep curve upwards. 
 
 
 Make a plot showing the average estimate of 𝜇̂ on the y axis and the true value of 𝜇 on the x axis. Make a second plot (or overlay on the first) the average estimate of 𝜇̂ only in samples for which the null was rejected on the y axis and the true value of 𝜇 on the x axis. 
@@ -170,8 +175,75 @@ ggplot(estimates_df, aes(x = mu)) +
 ```
 Is the sample average of 𝜇̂ across tests for which the null is rejected approximately equal to the true value of 𝜇? Why or why not?
 
+The average estimated mean for tests where the null hypothesis was rejected deviates from the true value between effect sizes of 0 and 4, with the estimated values being higher than the true value. This occurs because the power to detect a significant difference is lower at smaller effect sizes, meaning a larger difference between the estimated and true values is needed to reject the null hypothesis when the effect size is smaller.
+
 ## Problem 3
+Loading and viewing homicide data
 ```{r}
-homicide_df <- read_csv("homicide-data.csv") |>
-    mutate(city_state = map2(city, state, ~ paste(.x, .y, sep = ","))) 
+homicide_df <- read_csv("homicide-data.csv") 
+summary(homicide_df)
+```
+This homicide dataset contains 52179 observations with 12 variables including city id, reported date, victim first name and last name, race, age, sex, city, state, latitude, longitude, and disposition.
+
+Creating city state variable and summary
+```{r}
+homicide_summary = 
+  homicide_df |> 
+  mutate(city_state = str_c(city, state, sep = ", ")) |> 
+  group_by(city_state) |> 
+  summarize(
+    total_homicides = n(),
+    unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  ) |> 
+  ungroup()
+```
+
+Baltimore - unsolved homicide proportion 
+```{r}
+baltimore_df =
+  homicide_summary |> 
+  filter(city_state == "Baltimore, MD") |> 
+  summarize(
+    test = list(prop.test(unsolved_homicides, total_homicides) |> 
+                  tidy())
+  ) |> 
+  unnest(test) |> 
+  select(estimate,conf.low, conf.high)
+baltimore_df
+```
+
+Proportion of unsolved homicides in all cities
+```{r}
+all_cities_df =
+  homicide_summary |> 
+  group_by(city_state) |> 
+  summarize(
+    total_homicides = sum(total_homicides),
+    unsolved_homicides = sum(unsolved_homicides),
+    .groups = "drop"
+  ) |> 
+  mutate(
+    test_results = map2(unsolved_homicides, total_homicides, ~ tidy(prop.test(.x, .y)))
+  ) |> 
+  unnest(test_results) |> 
+  select(city_state, estimate, conf.low, conf.high)
+
+all_cities_df
+```
+
+Creating estimate plot with each city 
+```{r}
+all_cities_df |> 
+  mutate(city_state = fct_reorder(city_state, estimate)) |> 
+  ggplot(aes(x = city_state, y = estimate, color = city_state)) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.25, color = "royalblue") +
+  coord_flip() +
+  labs(
+    title = "Proportion of Unsolved Homicides by City",
+    x = "City",
+    y = "Estimated Proportion of Unsolved Homicides"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
 ```
